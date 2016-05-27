@@ -69,7 +69,7 @@ class Invitar extends Service
 
 			// add the person to the database
 			if( ! $this->connection) $this->connection = new Connection();
-			$sql = "INSERT INTO invitations(email_inviter, email_invited) VALUES ('{$request->email}', '$emailToInvite')";
+			$sql = "INSERT INTO invitations(email_inviter, email_invited, source) VALUES ('{$request->email}', '$emailToInvite', 'internal')";
 			$this->connection->deepQuery($sql);
 
 			// create the invitation for the user
