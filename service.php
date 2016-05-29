@@ -76,8 +76,9 @@ class Invitar extends Service
 			$response = new Response();
 			$response->setResponseEmail($emailToInvite);
 			$response->setResponseSubject("{$request->email} le ha invitado a usar Apretaste");
-			$responseContent = array("author" => $request->email);
+			$responseContent = array("host"=>$request->email, "guest"=>$emailToInvite);
 			$response->createFromTemplate("invitation.tpl", $responseContent);
+			$response->internal = true; // get the global template located at app/controllers/templates
 			$responses[] = $response;
 		}
 
