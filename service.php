@@ -49,8 +49,11 @@ class Invitar extends Service
 				continue;
 			}
 
-			// check if the person was already invited, or already using Apretaste
-			if($this->utils->checkPendingInvitation($emailToInvite) || $this->utils->personExist($emailToInvite))
+			// check you invited the person already, or if he/she is using Apretaste
+			if(
+				$this->utils->checkPendingInvitation($request->email, $emailToInvite) || 
+				$this->utils->personExist($emailToInvite)
+			)
 			{
 				$alreadyInvited[] = $emailToInvite;
 				continue;
@@ -69,7 +72,7 @@ class Invitar extends Service
 
 			// add the person to the database
 			if( ! $this->connection) $this->connection = new Connection();
-			$sql = "INSERT INTO invitations(email_inviter, email_invited, source) VALUES ('{$request->email}', '$emailToInvite', 'internal')";
+			$sql = "INSERT INTO invitations (email_inviter,email_invited,source) VALUES ('{$request->email}','$emailToInvite','internal')";
 			$this->connection->deepQuery($sql);
 
 			// create the invitation for the user
