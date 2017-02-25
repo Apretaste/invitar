@@ -12,21 +12,21 @@ Apretaste.</p>
 <table>
 	<tr>
 		<td valign="top">
-			<h2>Pruebe nuestra Tienda online</h2>
-			<p><b>1.</b> Cree un nuevo email. En la secci&oacute;n "Para" escriba: {apretaste_email}</p>
-			<p><b>2.</b> En la secci&oacute;n "Asunto" escriba: <span style="color:green;">TIENDA televisor lcd</span></p>
-			<p><b>3.</b> Env&iacute;e el email. En segundos recibir&aacute; otro email con televisores a la venta</p>
+			<h2>Navegue en internet por email</h2>
+			<p><b>1.</b> Cree nuevo email. En la secci&oacute;n "Para" escriba: {apretaste_email}</p>
+			<p><b>2.</b> En la secci&oacute;n "Asunto" escriba: <span style="color:green;">NAVEGAR</span></p>
+			<p><b>3.</b> Env&iacute;e el email. En segundos recibir&aacute; otro email con la p&aacute;gina de inicio del servicio NAVEGAR.</p>
 			{space10}
 			<center>
-				{button href="TIENDA televisor lcd" caption="Probar Tienda"}
+				{button href="NAVEGAR revolico.com" caption="Probar NAVEGAR"} {button href="NAVEGAR" caption="Ir a NAVEGAR" color="blue"}
+
 			</center>
 		</td>
 		<td valign="top">
-			{emailbox title="Tienda" from="{$author}" subject="TIENDA televisor lcd"}
+			{emailbox title="Navegar" from="{$userEmail}" subject="NAVEGAR revolico.com"}
 		</td>
 	</tr>
 </table>
-
 
 {space30}
 {space10}
