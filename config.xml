@@ -1,6 +1,6 @@
 <service>
 	<serviceName>invitar</serviceName>
-	<serviceDescription><![CDATA[Invita a un amigo a familiar a usar Apretaste. Gana tickets para nuestra Rifa, cr&eacute;ditos, &iexcl;Y buen karma!]]></serviceDescription>
+	<serviceDescription>Invita a un amigo a familiar a usar Apretaste. Gana tickets para nuestra Rifa, creditos, y buen karma</serviceDescription>
 	<creatorEmail>salvi.pascual@gmail.com</creatorEmail>
 	<serviceCategory>otros</serviceCategory>
 	<serviceUsage>
@@ -14,7 +14,7 @@
 			Recibir&aacute; un email de confirmaci&oacute;n, y su amigo o familar otro email invit&aacute;ndolo a usar Apretaste.
 
 
-			Tambi&eacute;n puede invitar m&aacute;s de una persona a la vez, escribiendo en el asunto del email la palabra INVITAR seguida por los emails separados por comas o espacios. 
+			Tambi&eacute;n puede invitar m&aacute;s de una persona a la vez, escribiendo en el asunto del email la palabra INVITAR seguida por los emails separados por comas o espacios.
 
 			Por ejemplo:
 			Para: {APRETASTE_EMAIL}
@@ -23,4 +23,5 @@
 			Recibir&aacute; un email de confirmaci&oacute;n, y sus amigos o familares otro email invit&aacute;ndolos a usar Apretaste.
 		]]>
 	</serviceUsage>
+	<listed>0</listed>
 </service>

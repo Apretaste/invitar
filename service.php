@@ -36,7 +36,7 @@ class Invitar extends Service
 
 	/**
 	 * Function excecuted once the service Letra is called
-	 * 
+	 *
 	 * @param Request
 	 * @return Response
 	 * */
@@ -84,13 +84,9 @@ class Invitar extends Service
 		// if no emails passed, return an error response
 		if(empty($query))
 		{
-			// update the valid email on the usage text
-			$validEmailAddress = $this->utils->getValidEmailAddress();
-			$usage = nl2br(str_replace('{APRETASTE_EMAIL}', $validEmailAddress, $this->serviceUsage));
-
 			// create response
 			$response = new Response();
-			$response->createFromText("Parece que quieres invitar a tus amigos y familia, pero olvidaste escribir sus emails. Inv&iacute;talos de la siguiente manera:<br/><br/>$usage");
+			$response->createFromText("Parece que quieres invitar a tus amigos y familia, pero olvidaste escribir sus emails.");
 			return $response;
 		}
 
@@ -111,7 +107,7 @@ class Invitar extends Service
 
 			// check you invited the person already, or if he/she is using Apretaste
 			if(
-				$this->utils->checkPendingInvitation($request->email, $emailToInvite) || 
+				$this->utils->checkPendingInvitation($request->email, $emailToInvite) ||
 				$this->utils->personExist($emailToInvite)
 			)
 			{
