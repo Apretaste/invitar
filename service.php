@@ -5,6 +5,36 @@ class Invitar extends Service
 	private $connection = null;
 
 	/**
+	 * Singleton connection to db
+	 *
+	 * @author kuma
+	 * @return Connection
+	 */
+	private function connection()
+	{
+		if (is_null($this->connection))
+		{
+			$this->connection = new Connection();
+		}
+
+		return $this->connection;
+	}
+
+	/**
+	 * Query assistant
+	 *
+	 * @author kuma
+	 * @example
+	 *      $this->q("SELECT * FROM TABLE"); // (more readable / SQL is autodescriptive)
+	 * @param string $sql
+	 * @return array
+	 */
+	private function q($sql)
+	{
+		return $this->connection()->deepQuery($sql);
+	}
+
+	/**
 	 * Function excecuted once the service Letra is called
 	 * 
 	 * @param Request
@@ -12,9 +42,39 @@ class Invitar extends Service
 	 * */
 	public function _main(Request $request)
 	{
+
 		// this service may return more than one Response
 		// create an empty array to fill with all the Response
 		$responses = array();
+
+		// new: check inviter's COUPON
+		$query = str_replace('@', '', trim($request->query));
+		$inviter = $this->utils->getEmailFromUsername($query);
+
+		// si el username (COUPON) recibido es un user de AP...
+		if ($inviter !== false)
+		{
+			$inviter = $this->utils->getPerson($inviter);
+			$invited = $this->utils->getUsernameFromEmail($request->email);
+			$who = $this->whoInvite($invited);
+
+			// si nadie ha invitado al user actual...
+			if ($who !== false)
+				return new Response();
+
+
+			// 1. darle credito a ambos
+			$this->q("UPDATE person SET credit = credit + 1 WHERE email = '{$inviter->email}';");
+
+			// 2. darle credito al padre de quien invita
+			$who = $this->whoInvite($inviter->username);
+			if ($who !== false)
+			{
+				$this->q("UPDATE person SET credit = credit + 0.10 WHERE username = '$who';");
+			}
+
+			return new Response();
+		}
 
 		// get the array of emails from the body. For each email
 		$query = str_replace(",", " ", $request->query);
@@ -71,9 +131,8 @@ class Invitar extends Service
 			$emailsInvited[] = $emailToInvite;
 
 			// add the person to the database
-			if( ! $this->connection) $this->connection = new Connection();
 			$sql = "INSERT INTO invitations (email_inviter,email_invited,source) VALUES ('{$request->email}','$emailToInvite','internal')";
-			$this->connection->deepQuery($sql);
+			$this->q($sql);
 
 			// create the invitation for the user
 			$response = new Response();
@@ -100,5 +159,27 @@ class Invitar extends Service
 
 		// return the array of Response
 		return $responses;
+	}
+
+	/**
+	 * Who is the inviter of username
+	 *
+	 * @param $username
+	 * @return bool
+	 */
+	private function whoInvite($username)
+	{
+
+		$utils = new Utils();
+		$email = $utils->getEmailFromUsername($username);
+		$r = $this->q("SELECT * FROM invitations WHERE email_invited = '$email' LIMIT 0,1;");
+
+		if (isset($r[0]))
+		{
+			$person = $utils->getPerson($r[0]->email_inviter);
+			return $person->username;
+		}
+
+		return false;
 	}
 }
