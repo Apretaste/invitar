@@ -49,12 +49,12 @@ class Invitar extends Service
 
 		// new: check inviter's COUPON
 		$query = str_replace('@', '', trim($request->query));
-		$inviter = $this->utils->getEmailFromUsername($query);
+		$inviterEmail = $this->utils->getEmailFromUsername($query);
 
 		// si el username (COUPON) recibido es un user de AP...
-		if ($inviter !== false)
+		if ($inviterEmail !== false)
 		{
-			$inviter = $this->utils->getPerson($inviter);
+			$inviter = $this->utils->getPerson($inviterEmail);
 			$invited = $this->utils->getUsernameFromEmail($request->email);
 			$who = $this->whoInvite($invited);
 
@@ -72,6 +72,9 @@ class Invitar extends Service
 			{
 				$this->q("UPDATE person SET credit = credit + 0.10 WHERE username = '$who';");
 			}
+			
+			// 3. insert invitation
+			$this->q("INSERT INTO invitations (email_inviter,email_invited,source) VALUES ('$inviterEmail','{$request->email}','coupon')");
 
 			return new Response();
 		}
