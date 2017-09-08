@@ -99,13 +99,13 @@ class Invitar extends Service
 			// get "nietos" of current user
 			foreach ($childs as $child)
 			{
-				$child->profit = {$this->profit_by_child};
+				$child->profit = $this->profit_by_child;
 				$sql = "SELECT count(*) as t
 				 FROM _invitar_tree WHERE email_inviter = '{$child->email_invited}';";
 				 
 				$r = $this->q($sql);
 				
-				$child->profit += $r[0]->t * {$this->profit_by_nieto};				
+				$child->profit += $r[0]->t * $this->profit_by_nieto;
 			}
 						
 			// create response
