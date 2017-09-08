@@ -3,8 +3,8 @@
 class Invitar extends Service
 {
 	private $connection = null;
-	private $profit_by_child = 1;
-	private $profit_by_nieto = 0.1;
+	private $profit_by_child = 0.25;
+	private $profit_by_nieto = 0.05;
 
 	/**
 	 * Singleton connection to db
