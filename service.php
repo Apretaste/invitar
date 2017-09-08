@@ -3,6 +3,8 @@
 class Invitar extends Service
 {
 	private $connection = null;
+	private $profit_by_child = 1;
+	private $profit_by_nieto = 0.1;
 
 	/**
 	 * Singleton connection to db
@@ -47,34 +49,34 @@ class Invitar extends Service
 		// create an empty array to fill with all the Response
 		$responses = array();
 
+		$invited = $this->utils->getUsernameFromEmail($request->email);
+		$who = $this->whoInvite($invited);
+		
 		// new: check inviter's COUPON
 		$query = str_replace('@', '', trim($request->query));
 		$inviterEmail = $this->utils->getEmailFromUsername($query);
-
+			
 		// si el username (COUPON) recibido es un user de AP...
 		if ($inviterEmail !== false)
 		{
 			$inviter = $this->utils->getPerson($inviterEmail);
-			$invited = $this->utils->getUsernameFromEmail($request->email);
-			$who = $this->whoInvite($invited);
-
-			// si nadie ha invitado al user actual...
+			
+			// si alguien ya invito al user actual...
 			if ($who !== false)
 				return new Response();
 
-
 			// 1. darle credito a ambos
-			$this->q("UPDATE person SET credit = credit + 1 WHERE email = '{$inviter->email}';");
+			$this->q("UPDATE person SET credit = credit + {$this->profit_by_child} WHERE email = '{$inviter->email}';");
 
 			// 2. darle credito al padre de quien invita
 			$who = $this->whoInvite($inviter->username);
 			if ($who !== false)
 			{
-				$this->q("UPDATE person SET credit = credit + 0.10 WHERE username = '$who';");
+				$this->q("UPDATE person SET credit = credit + {$this->profit_by_nieto} WHERE username = '$who';");
 			}
 			
 			// 3. insert invitation
-			$this->q("INSERT INTO invitations (email_inviter,email_invited,source) VALUES ('$inviterEmail','{$request->email}','coupon')");
+			$this->q("INSERT INTO _invitar_tree (email_inviter,email_invited,source) VALUES ('$inviterEmail','{$request->email}','coupon')");
 
 			return new Response();
 		}
@@ -87,9 +89,35 @@ class Invitar extends Service
 		// if no emails passed, return an error response
 		if(empty($query))
 		{
+			// get childs of current user
+			$childs = $this->q("SELECT *, 
+			(SELECT username FROM person WHERE person.email = _invitar_tree.email_invited) AS username_invited
+			 FROM _invitar_tree WHERE email_inviter = '{$request->email}';");
+			 
+			if ($childs === false) $childs = [];
+			
+			// get "nietos" of current user
+			foreach ($childs as $child)
+			{
+				$child->profit = {$this->profit_by_child};
+				$sql = "SELECT count(*) as t
+				 FROM _invitar_tree WHERE email_inviter = '{$child->email_invited}';";
+				 
+				$r = $this->q($sql);
+				
+				$child->profit += $r[0]->t * {$this->profit_by_nieto};				
+			}
+						
 			// create response
 			$response = new Response();
-			$response->createFromText("Parece que quieres invitar a tus amigos y familia, pero olvidaste escribir sus emails.");
+			$response->createFromTemplate("home.tpl", [
+				"profit_by_child" => $this->profit_by_child,
+				"profit_by_nieto" => $this->profit_by_nieto,
+				"invited" => $who !== false,
+				"father" => $who,
+				"childs" => count($childs) > 0 ? $childs: false
+			]);
+			
 			return $response;
 		}
 
@@ -171,7 +199,7 @@ class Invitar extends Service
 
 		$utils = new Utils();
 		$email = $utils->getEmailFromUsername($username);
-		$r = $this->q("SELECT * FROM invitations WHERE email_invited = '$email' LIMIT 0,1;");
+		$r = $this->q("SELECT * FROM _invitar_tree WHERE email_invited = '$email' LIMIT 0,1;");
 
 		if (isset($r[0]))
 		{
