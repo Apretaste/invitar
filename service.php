@@ -1,212 +1,177 @@
 <?php
 
-class Invitar extends Service
+use Apretaste\Person;
+use Apretaste\Request;
+use Apretaste\Response;
+use Framework\Database;
+use Apretaste\Challenges;
+use Apretaste\Level;
+use Framework\Utils;
+
+class Service
 {
-	private $connection = null;
-	private $profit_by_child = 0.25;
-	private $profit_by_nieto = 0.05;
-
 	/**
-	 * Singleton connection to db
+	 * Show the invitation form
 	 *
-	 * @author kuma
-	 * @return Connection
+	 * @param Request $request
+	 * @param Response $response
+	 *
+	 * @throws \Framework\Alert
 	 */
-	private function connection()
+	public function _main(Request $request, Response &$response)
 	{
-		if (is_null($this->connection))
-		{
-			$this->connection = new Connection();
-		}
+		// get the theme
+		$theme = empty($request->input->data->theme) ? 'light': $request->input->data->theme;
 
-		return $this->connection;
+		// send response to the view
+		$response->setCache('year');
+		$response->setLayout("$theme.ejs");
+		$response->setTemplate('home.ejs');
 	}
 
 	/**
-	 * Query assistant
+	 * Show the list of invitations
 	 *
-	 * @author kuma
-	 * @example
-	 *      $this->q("SELECT * FROM TABLE"); // (more readable / SQL is autodescriptive)
-	 * @param string $sql
-	 * @return array
+	 * @param Request $request
+	 * @param Response $response
+	 *
+	 * @throws \Framework\Alert
 	 */
-	private function q($sql)
+	public function _list(Request $request, Response &$response)
 	{
-		return $this->connection()->deepQuery($sql);
+		// get the theme
+		$theme = empty($request->input->data->theme) ? 'light': $request->input->data->theme;
+
+		// get list of people invited
+		$invitations = Database::query("
+			SELECT accepted, email_to, 
+				TIMESTAMPDIFF(DAY, send_date, NOW()) AS days,
+				DATE_FORMAT(send_date, '%e/%c/%Y') AS send_date
+			FROM _email_invitations 
+			WHERE id_from = '{$request->person->id}'");
+
+		// send response to the view
+		$response->setLayout("$theme.ejs");
+		$response->setTemplate('list.ejs', ['invitations' => $invitations]);
 	}
 
 	/**
-	 * Function excecuted once the service Letra is called
+	 * Show the invitar form for the service Bolita
 	 *
-	 * @param Request
-	 * @return Response
-	 * */
-	public function _main(Request $request)
+	 * @param Request $request
+	 * @param Response $response
+	 *
+	 * @throws \FeedException
+	 * @throws \Framework\Alert
+	 */
+	public function _bolita(Request $request, Response &$response)
 	{
+		$this->_main($request, $response);
+		$response->setLayout('dark.ejs');
+	}
 
-		// this service may return more than one Response
-		// create an empty array to fill with all the Response
-		$responses = array();
+	/**
+	 * Invite or remind a user to use the app
+	 *
+	 * @param Request $request
+	 * @param Response $response
+	 *
+	 * @throws \Framework\Alert
+	 */
+	public function _invitar(Request $request, Response &$response)
+	{
+		// get the email of the host
+		$email = $request->input->data->email;
+		$theme = empty($request->input->data->theme) ? 'light': $request->input->data->theme;
 
-		$invited = $this->utils->getUsernameFromEmail($request->email);
-		$who = $this->whoInvite($invited);
-		
-		// new: check inviter's COUPON
-		$query = str_replace('@', '', trim($request->query));
-		$inviterEmail = $this->utils->getEmailFromUsername($query);
-			
-		// si el username (COUPON) recibido es un user de AP...
-		if ($inviterEmail !== false)
-		{
-			$inviter = $this->utils->getPerson($inviterEmail);
-			
-			// si alguien ya invito al user actual...
-			if ($who !== false)
-				return new Response();
+		// set the layout
+		$response->setLayout("$theme.ejs");
 
-			// 1. darle credito a ambos
-			$this->q("UPDATE person SET credit = credit + {$this->profit_by_child} WHERE email = '{$inviter->email}';");
-
-			// 2. darle credito al padre de quien invita
-			$who = $this->whoInvite($inviter->username);
-			if ($who !== false)
-			{
-				$this->q("UPDATE person SET credit = credit + {$this->profit_by_nieto} WHERE username = '$who';");
-			}
-			
-			// 3. insert invitation
-			$this->q("INSERT INTO _invitar_tree (email_inviter,email_invited,source) VALUES ('$inviterEmail','{$request->email}','coupon')");
-
-			return new Response();
-		}
-
-		// get the array of emails from the body. For each email
-		$query = str_replace(",", " ", $request->query);
-		$query = preg_replace("/\s+/", " ", $query);
-		$emailsToInvite = explode(" ", $query);
-
-		// if no emails passed, return an error response
-		if(empty($query))
-		{
-			// get childs of current user
-			$childs = $this->q("SELECT *, 
-			(SELECT username FROM person WHERE person.email = _invitar_tree.email_invited) AS username_invited
-			 FROM _invitar_tree WHERE email_inviter = '{$request->email}';");
-			 
-			if ($childs === false) $childs = [];
-			
-			// get "nietos" of current user
-			foreach ($childs as $child)
-			{
-				$child->profit = $this->profit_by_child;
-				$sql = "SELECT count(*) as t
-				 FROM _invitar_tree WHERE email_inviter = '{$child->email_invited}';";
-				 
-				$r = $this->q($sql);
-				
-				$child->profit += $r[0]->t * $this->profit_by_nieto;
-			}
-						
-			// create response
-			$response = new Response();
-			$response->createFromTemplate("home.tpl", [
-				"profit_by_child" => $this->profit_by_child,
-				"profit_by_nieto" => $this->profit_by_nieto,
-				"invited" => $who !== false,
-				"father" => $who,
-				"childs" => count($childs) > 0 ? $childs: false
+		// do not invite a user twice
+		if (Person::find($email)) {
+			$response->setTemplate('message.ejs', [
+					'header' => 'El usuario ya existe',
+					'icon' => 'sentiment_very_dissatisfied',
+					'text' => "El email $email ya forma parte de nuestros usuarios, por lo cual no lo podemos invitar a la app."
 			]);
-			
-			return $response;
 		}
 
-		// inicialize response arrays
-		$emailsInvited = array();
-		$invalidEmails = array();
-		$alreadyInvited = array();
+		// get the days the invitation is due
+		$invitation = Database::query("
+			SELECT TIMESTAMPDIFF(DAY,send_date, NOW()) AS days 
+			FROM _email_invitations 
+			WHERE id_from = '{$request->person->id}' 
+			AND email_to = '$email'");
 
-		// separate all email types and make the invitations
-		foreach ($emailsToInvite as $emailToInvite)
-		{
-			// check if the person's email is formatted properly
-			if ( ! filter_var($emailToInvite, FILTER_VALIDATE_EMAIL))
-			{
-				$invalidEmails[] = $emailToInvite;
-				continue;
+		// do not resend invitations before the three days
+		$resend = false;
+		if (!empty($invitation)) {
+			$resend = $invitation[0]->days >= 3;
+			if (!$resend) {
+				$response->setTemplate('message.ejs', [
+						'header' => 'Lo sentimos',
+						'icon' => 'sentiment_very_dissatisfied',
+						'text' => "Ya enviaste una invitación a $email hace menos de 3 días, por favor espera antes de reenviar la invitación."
+				]);
+				return;
 			}
-
-			// check you invited the person already, or if he/she is using Apretaste
-			if(
-				$this->utils->checkPendingInvitation($request->email, $emailToInvite) ||
-				$this->utils->personExist($emailToInvite)
-			)
-			{
-				$alreadyInvited[] = $emailToInvite;
-				continue;
-			}
-
-			// check if the email is valid
-			$status = $this->utils->deliveryStatus($emailToInvite);
-			if($status != 'ok')
-			{
-				$invalidEmails[] = $emailToInvite;
-				continue;
-			}
-
-			// invite the person
-			$emailsInvited[] = $emailToInvite;
-
-			// add the person to the database
-			$sql = "INSERT INTO invitations (email_inviter,email_invited,source) VALUES ('{$request->email}','$emailToInvite','internal')";
-			$this->q($sql);
-
-			// create the invitation for the user
-			$response = new Response();
-			$response->setResponseEmail($emailToInvite);
-			$response->setResponseSubject("{$request->email} le ha invitado a usar Apretaste");
-			$responseContent = array("host"=>$request->email, "guest"=>$emailToInvite);
-			$response->createFromTemplate("invitation.tpl", $responseContent);
-			$response->internal = true; // get the global template located at app/controllers/templates
-			$responses[] = $response;
 		}
 
-		// create returning array
-		$responseContent = array(
-			"invited" => $emailsInvited,
-			"invalid" => $invalidEmails,
-			"already" => $alreadyInvited
-		);
+		// get support email
+		$supportEmail = Utils::getSupportEmailAddress();
 
-		// create the confirmation for the invitor
-		$response = new Response();
-		$response->setResponseSubject("Gracias por invitar a sus amigos y familia a Apretaste");
-		$response->createFromTemplate("confirmation.tpl", $responseContent);
-		$responses[] = $response;
+		// get host name or username if it does not exist
+		$name = !empty($request->person->first_name) ? $request->person->first_name : '@' . $request->person->username;
 
-		// return the array of Response
-		return $responses;
-	}
-
-	/**
-	 * Who is the inviter of username
-	 *
-	 * @param $username
-	 * @return bool
-	 */
-	private function whoInvite($username)
-	{
-
-		$utils = new Utils();
-		$email = $utils->getEmailFromUsername($username);
-		$r = $this->q("SELECT * FROM _invitar_tree WHERE email_invited = '$email' LIMIT 0,1;");
-
-		if (isset($r[0]))
-		{
-			$person = $utils->getPerson($r[0]->email_inviter);
-			return $person->username;
+		// create the invitation text
+		if ($theme === 'dark') {
+			$link = 'http://bit.ly/labolita';
+			$subject = "$name te ha invitado a la bolita";
+			$body = "
+				<p>Algo debes tener, porque <b>@{$request->person->username}</b> te invitó a La Bolita.</p>
+				<p>La Bolita es nuestra app que te permite estar al tanto de los resultados de la bolita, aprender sobre la charada, predecir ganadores, sacar tu número de la suerte y más, todo hecho para el Cubano a través de Datos, WiFi y correo Nauta, y además, te ahorra datos de lo lindo, porque todas las peticiones son comprimidas al máximo.</p>
+				<p>Descarga la app desde el siguiente enlace, entra usando este correo, y ambos $name y tú ganarán $0.50 de crédito para comprar dentro de la app.</p>
+				<p>$link</p>
+				<p>Si presentas alguna dificultad, escríbenos a $supportEmail y siempre estaremos atentos para ayudarte.</p>
+				<p>Bienvenido a La Bolita!</p>";
+		} else {
+			$link = 'http://bit.ly/32gPZns';
+			$subject = "$name te ha invitado a la app";
+			$body = "
+				<p>Algo debes tener, porque <b>@{$request->person->username}</b> te invitó a ser parte nuestra vibrante comunidad en Ap!</p>
+				<p>Somos la única app que ofrece docena de servicios útils en Cuba a través de Datos, WiFi y correo Nauta, y la que más ahorra tus megas. Además, cada semana hacemos rifas, concursos y encuestas, en las cuales te ganas teléfonos, tablets y recargas.</p>
+				<p>Descarga la app desde el siguiente enlace, entra usando este correo, y ambos $name y tú ganarán $0.50 de crédito para comprar dentro de la app.</p>
+				<p>$link</p>
+				<p>Si presentas alguna dificultad, escríbenos a $supportEmail y siempre estaremos atentos para ayudarte.</p>
+				<p>Bienvenido a nuestra familia!</p>";
 		}
 
-		return false;
+		// send the email
+		$invitationEmail = new Email();
+		$invitationEmail->to = $email;
+		$invitationEmail->subject = $subject;
+		$invitationEmail->body = $body;
+		$invitationEmail->service = 'invitar';
+		$invitationEmail->send();
+
+		// save invitation into the database
+		if (!$resend) {
+			Database::query("INSERT INTO _email_invitations(id_from, email_to) VALUES('{$request->person->id}','$email')");
+		} else {
+			Database::query("UPDATE _email_invitations SET send_date = NOW() WHERE id_from = '{$request->person->id}' AND email_to = '$email'");
+		}
+
+		// complete the challenge
+		Challenges::complete('invite-friend', $request->person->id);
+
+		// add the experience
+		Level::setExperience('INVITE_FRIEND', $request->person->id);
+
+		// success inviting the user
+		$response->setTemplate('message.ejs', [
+				'header' => 'Su invitación ha sido enviada',
+				'icon' => 'sentiment_very_satisfied',
+				'text' => "Gracias por invitar a $email a ser parte de nuestra comunidad, si se une serás notificado y recibirás §0.5 de crédito."
+		]);
 	}
 }

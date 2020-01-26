@@ -1,0 +1,9 @@
+{
+	"name": "invitar",
+	"caption": "Invitar",
+	"description": "Invite a sus amigos y familiares a ser parte de la familia Apretaste.",
+	"category": "otros",
+	"creator": "kuma@apretaste.org",
+	"listed": 1,
+	"guest": false
+}
