@@ -3,6 +3,7 @@
 use Apretaste\Person;
 use Apretaste\Request;
 use Apretaste\Response;
+use Framework\Alert;
 use Framework\Database;
 use Apretaste\Challenges;
 use Apretaste\Level;
@@ -118,7 +119,7 @@ class Service
 		}
 
 		// get support email
-		$supportEmail = Utils::getSupportEmailAddress();
+		$supportEmail = $this->getSupportEmailAddress();
 
 		// get host name or username if it does not exist
 		$name = !empty($request->person->first_name) ? $request->person->first_name : '@' . $request->person->username;
@@ -173,5 +174,31 @@ class Service
 				'icon' => 'sentiment_very_satisfied',
 				'text' => "Gracias por invitar a $email a ser parte de nuestra comunidad, si se une serás notificado y recibirás §0.5 de crédito."
 		]);
+	}
+
+	/**
+	 * Returns an email address to contact the customer support
+	 *
+	 * @return String, email address
+	 * @throws \Framework\Alert
+	 */
+	public function getSupportEmailAddress()
+	{
+		// get a random support email
+
+		$support = Database::query("
+			SELECT email FROM delivery_input
+			WHERE environment='support' AND active=1
+			ORDER BY RAND() LIMIT 1");
+
+		// alert if no support mailbox
+
+		if (empty($support)) {
+			throw new Alert(500, 'No support email in table delivery_input');
+		} else {
+			$support = $support[0]->email;
+		}
+
+		return "$support@gmail.com";
 	}
 }
