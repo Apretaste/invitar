@@ -194,7 +194,7 @@ class Service
 		// alert if no support mailbox
 
 		if (empty($support)) {
-			throw new Alert(500, 'No support email in table delivery_input');
+			throw new Alert("500", 'No support email in table delivery_input');
 		} else {
 			$support = $support[0]->email;
 		}
