@@ -7,7 +7,6 @@ use Framework\Alert;
 use Framework\Database;
 use Apretaste\Challenges;
 use Apretaste\Level;
-use Framework\Utils;
 
 class Service
 {
@@ -19,7 +18,7 @@ class Service
 	 *
 	 * @throws \Framework\Alert
 	 */
-	public function _main(Request $request, Response &$response)
+	public function _main(Request $request, Response $response)
 	{
 		// get the theme
 		$theme = empty($request->input->data->theme) ? 'light': $request->input->data->theme;
@@ -38,7 +37,7 @@ class Service
 	 *
 	 * @throws \Framework\Alert
 	 */
-	public function _list(Request $request, Response &$response)
+	public function _list(Request $request, Response $response)
 	{
 		// get the theme
 		$theme = empty($request->input->data->theme) ? 'light': $request->input->data->theme;
@@ -65,7 +64,7 @@ class Service
 	 * @throws \FeedException
 	 * @throws \Framework\Alert
 	 */
-	public function _bolita(Request $request, Response &$response)
+	public function _bolita(Request $request, Response $response)
 	{
 		$this->_main($request, $response);
 		$response->setLayout('dark.ejs');
@@ -79,7 +78,7 @@ class Service
 	 *
 	 * @throws \Framework\Alert
 	 */
-	public function _invitar(Request $request, Response &$response)
+	public function _invitar(Request $request, Response $response)
 	{
 		// get the email of the host
 		$email = $request->input->data->email;
@@ -133,7 +132,7 @@ class Service
 				<p>La Bolita es nuestra app que te permite estar al tanto de los resultados de la bolita, aprender sobre la charada, predecir ganadores, sacar tu número de la suerte y más, todo hecho para el Cubano a través de Datos, WiFi y correo Nauta, y además, te ahorra datos de lo lindo, porque todas las peticiones son comprimidas al máximo.</p>
 				<p>Descarga la app desde el siguiente enlace, entra usando este correo, y ambos $name y tú ganarán $0.50 de crédito para comprar dentro de la app.</p>
 				<p>$link</p>
-				<p>Si presentas alguna dificultad, escríbenos a $supportEmail y siempre estaremos atentos para ayudarte.</p>
+				".($supportEmail !== null ? "<p>Si presentas alguna dificultad, escríbenos a $supportEmail y siempre estaremos atentos para ayudarte.</p>" : "")."
 				<p>Bienvenido a La Bolita!</p>";
 		} else {
 			$link = 'http://bit.ly/32gPZns';
@@ -143,7 +142,7 @@ class Service
 				<p>Somos la única app que ofrece docena de servicios útils en Cuba a través de Datos, WiFi y correo Nauta, y la que más ahorra tus megas. Además, cada semana hacemos rifas, concursos y encuestas, en las cuales te ganas teléfonos, tablets y recargas.</p>
 				<p>Descarga la app desde el siguiente enlace, entra usando este correo, y ambos $name y tú ganarán $0.50 de crédito para comprar dentro de la app.</p>
 				<p>$link</p>
-				<p>Si presentas alguna dificultad, escríbenos a $supportEmail y siempre estaremos atentos para ayudarte.</p>
+				".($supportEmail !== null ? "<p>Si presentas alguna dificultad, escríbenos a $supportEmail y siempre estaremos atentos para ayudarte.</p>" : "")."
 				<p>Bienvenido a nuestra familia!</p>";
 		}
 
@@ -194,7 +193,7 @@ class Service
 		// alert if no support mailbox
 
 		if (empty($support)) {
-			throw new Alert("500", 'No support email in table delivery_input');
+			return null;
 		} else {
 			$support = $support[0]->email;
 		}
