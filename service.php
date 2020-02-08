@@ -1,5 +1,6 @@
 <?php
 
+use Apretaste\Email;
 use Apretaste\Person;
 use Apretaste\Request;
 use Apretaste\Response;
