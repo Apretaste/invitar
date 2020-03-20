@@ -1,19 +1,17 @@
-"use strict";
-
 $(document).ready(function(){
 	$('.tabs').tabs();
 });
 
-function invite(theme) {
+function invite() {
 	var email = $('#email').val();
-	remind(email, theme);
+	remind(email);
 }
 
-function remind(email, theme) {
+function remind(email) {
 	if (isEmail(email)) {
 		apretaste.send({
 			'command': 'INVITAR INVITAR',
-			'data': {'email':email, 'theme':theme}
+			'data': {'email':email}
 		});
 	} else M.toast({'html':"Ingrese un email válido"});
 }

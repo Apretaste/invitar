@@ -3,11 +3,8 @@
 		<h1><%= header %></h1>
 		<i class="material-icons large"><%= icon %></i>
 		<p><%= text %></p>
+		<a class="waves-effect waves-light btn" href="#!" onclick="apretaste.send({'command':'INVITAR'})">
+			Regresar
+		</a>
 	</div>
-</div>
-
-<div class="fixed-action-btn">
-	<a onclick="apretaste.send({'command':'INVITAR', data:{'theme':'<%= theme %>'}})" class="btn-floating btn-large">
-		<i class="material-icons">arrow_back</i>
-	</a>
 </div>
