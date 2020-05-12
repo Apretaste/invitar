@@ -131,7 +131,6 @@ class Service
 		$sender = new Email();
 		$sender->to = $email;
 		$sender->subject = "$name te ha invitado a la app";
-		$sender->body = $body;
 		$sender->sendFromTemplate($content, 'invite');
 
 		// save invitation into the database
