@@ -2,6 +2,7 @@
 
 use Framework\Config;
 use Framework\Database;
+use Apretaste\Email;
 use Apretaste\Level;
 use Apretaste\Person;
 use Apretaste\Request;
