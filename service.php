@@ -118,9 +118,6 @@ class Service
 			}
 		}
 
-		// get support email
-		$supportEmail = ;
-
 		// get host name or username if it does not exist
 		$name = !empty($request->person->first_name) ? $request->person->first_name : '@' . $request->person->username;
 
@@ -128,9 +125,8 @@ class Service
 		$content = [
 			'link' => 'http://tiny.cc/apretaste', 
 			'username' => $request->person->username,
-			'name' => $name,
 			'support' => Config::pick('general')['support_email'],
-		];
+			'name' => $name];
 
 		// send the email
 		$sender = new Email();
