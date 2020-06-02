@@ -1,13 +1,13 @@
 <?php
 
+use Framework\Config;
+use Framework\Database;
 use Apretaste\Email;
+use Apretaste\Level;
 use Apretaste\Person;
 use Apretaste\Request;
 use Apretaste\Response;
 use Apretaste\Challenges;
-use Apretaste\Level;
-use Framework\Config;
-use Framework\Database;
 
 class Service
 {
@@ -56,7 +56,7 @@ class Service
 
 		// do not invite a user twice
 		if (Person::find($email)) {
-			return $response->setTemplate('message.ejs', [
+			$response->setTemplate('message.ejs', [
 				'header' => 'El usuario ya existe',
 				'icon' => 'sentiment_very_dissatisfied',
 				'text' => "El email $email ya forma parte de nuestros usuarios, por lo cual no lo podemos invitar a la app."
@@ -75,7 +75,7 @@ class Service
 		if (!empty($invitation)) {
 			$resend = $invitation[0]->days >= 3;
 			if (!$resend) {
-				return $response->setTemplate('message.ejs', [
+				$response->setTemplate('message.ejs', [
 					'header' => 'Lo sentimos',
 					'icon' => 'sentiment_very_dissatisfied',
 					'text' => "Ya enviaste una invitación a $email hace menos de 3 días, por favor espera antes de reenviar la invitación."
@@ -83,28 +83,21 @@ class Service
 			}
 		}
 
-		// get support email
-		$supportEmail = Config::pick('general')['support_email'];
-
 		// get host name or username if it does not exist
 		$name = !empty($request->person->first_name) ? $request->person->first_name : '@' . $request->person->username;
 
-		// create the invitation text
-		$body = "
-			<p>Algo debes tener, porque <b>@{$request->person->username}</b> te invitó a ser parte nuestra vibrante comunidad</p>
-			<p>Somos la única app que ofrece docena de servicios útils en Cuba a través de Datos, WiFi y correo Nauta, y la que más ahorra tus megas. Además, cada semana hacemos rifas, concursos y encuestas, en las cuales te ganas recargas, teléfonos y hasta tablets.</p>
-			<p>Descarga la app desde el siguiente enlace, entra usando este correo, y ambos $name y tú ganarán $0.50 de crédito para comprar dentro de la app.</p>
-			<p>http://bit.ly/32gPZns</p>
-			<p>Si presentas alguna dificultad, escríbenos a $supportEmail y siempre estaremos atentos para ayudarte.</p>
-			<p>¡Bienvenido a nuestra familia!</p>";
+		// create the invitation variables
+		$content = [
+			'link' => 'http://tiny.cc/apretaste', 
+			'username' => $request->person->username,
+			'support' => Config::pick('general')['support_email'],
+			'name' => $name];
 
 		// send the email
 		$sender = new Email();
 		$sender->to = $email;
 		$sender->subject = "$name te ha invitado a la app";
-		$sender->body = $body;
-		$sender->service = 'invitar';
-		$sender->send();
+		$sender->sendFromTemplate($content, 'invite');
 
 		// save invitation into the database
 		if ($resend) {
