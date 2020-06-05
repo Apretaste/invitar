@@ -55,8 +55,8 @@ class Service
 		$email = $request->input->data->email;
 
 		// do not invite a user twice
-		if (Person::find($email)) {
-			$response->setTemplate('message.ejs', [
+		if (Person::find($email) || strpos($email, '+') !== false) {
+			return $response->setTemplate('message.ejs', [
 				'header' => 'El usuario ya existe',
 				'icon' => 'sentiment_very_dissatisfied',
 				'text' => "El email $email ya forma parte de nuestros usuarios, por lo cual no lo podemos invitar a la app."
@@ -64,18 +64,19 @@ class Service
 		}
 
 		// get the days the invitation is due
+		$cleanEmail = str_replace('.', '', $email);
 		$invitation = Database::query("
 			SELECT TIMESTAMPDIFF(DAY,send_date, NOW()) AS days 
 			FROM _email_invitations 
 			WHERE id_from = {$request->person->id}
-			AND email_to = '$email'");
+			AND REPLACE(email_to, '.', '') = '$cleanEmail'");
 
 		// do not resend invitations before the three days
 		$resend = false;
 		if (!empty($invitation)) {
 			$resend = $invitation[0]->days >= 3;
 			if (!$resend) {
-				$response->setTemplate('message.ejs', [
+				return $response->setTemplate('message.ejs', [
 					'header' => 'Lo sentimos',
 					'icon' => 'sentiment_very_dissatisfied',
 					'text' => "Ya enviaste una invitación a $email hace menos de 3 días, por favor espera antes de reenviar la invitación."
@@ -101,9 +102,9 @@ class Service
 
 		// save invitation into the database
 		if ($resend) {
-			Database::query("UPDATE _email_invitations SET send_date = NOW() WHERE id_from = '{$request->person->id}' AND email_to = '$email'");
+			Database::query("UPDATE _email_invitations SET send_date = NOW() WHERE id_from = '{$request->person->id}' AND REPLACE(email_to, '.', '') = '$cleanEmail'");
 		} else {
-			Database::query("INSERT INTO _email_invitations(id_from, email_to) VALUES('{$request->person->id}','$email')");
+			Database::query("INSERT INTO _email_invitations(id_from, email_to) VALUES('{$request->person->id}', '$email')");
 		}
 
 		// complete the challenge

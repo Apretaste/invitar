@@ -8,7 +8,8 @@ function invite() {
 }
 
 function remind(email) {
-	if (isEmail(email)) {
+	var notPlusSymbol = email.indexOf('+') == -1;
+	if (notPlusSymbol && isEmail(email)) {
 		apretaste.send({
 			'command': 'INVITAR INVITAR',
 			'data': {'email':email}
