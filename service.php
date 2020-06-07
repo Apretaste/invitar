@@ -63,13 +63,19 @@ class Service
 			]);
 		}
 
+		// clean international emails to avoid aliases
+		$sqlCheckEmailRule = "email_to = '$email'";
+		if (substr($email, -3) !== '.cu') {
+			$cleanEmail = str_replace('.', '', $email);
+			$sqlCheckEmailRule = "REPLACE(email_to, '.', '') = '$cleanEmail'";
+		}
+
 		// get the days the invitation is due
-		$cleanEmail = str_replace('.', '', $email);
 		$invitation = Database::query("
 			SELECT TIMESTAMPDIFF(DAY,send_date, NOW()) AS days 
 			FROM _email_invitations 
 			WHERE id_from = {$request->person->id}
-			AND REPLACE(email_to, '.', '') = '$cleanEmail'");
+			AND $sqlCheckEmailRule");
 
 		// do not resend invitations before the three days
 		$resend = false;
@@ -102,7 +108,7 @@ class Service
 
 		// save invitation into the database
 		if ($resend) {
-			Database::query("UPDATE _email_invitations SET send_date = NOW() WHERE id_from = '{$request->person->id}' AND REPLACE(email_to, '.', '') = '$cleanEmail'");
+			Database::query("UPDATE _email_invitations SET send_date = NOW() WHERE id_from = '{$request->person->id}' AND $sqlCheckEmailRule");
 		} else {
 			Database::query("INSERT INTO _email_invitations(id_from, email_to) VALUES('{$request->person->id}', '$email')");
 		}
