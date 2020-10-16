@@ -1,13 +1,14 @@
 <?php
 
-use Framework\Config;
-use Framework\Database;
 use Apretaste\Email;
 use Apretaste\Level;
 use Apretaste\Person;
 use Apretaste\Request;
 use Apretaste\Response;
 use Apretaste\Challenges;
+use Framework\Config;
+use Framework\Database;
+use Framework\GoogleAnalytics;
 
 class Service
 {
@@ -118,6 +119,9 @@ class Service
 
 		// add the experience
 		Level::setExperience('INVITE_FRIEND', $request->person->id);
+
+		// submit to Google Analytics 
+		GoogleAnalytics::event('invitation_send', $email);
 
 		// success inviting the user
 		$response->setTemplate('message.ejs', [
