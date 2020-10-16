@@ -6,6 +6,7 @@ use Apretaste\Person;
 use Apretaste\Request;
 use Apretaste\Response;
 use Apretaste\Challenges;
+use Framework\Alert;
 use Framework\Config;
 use Framework\Database;
 use Framework\GoogleAnalytics;
@@ -105,7 +106,17 @@ class Service
 		$sender = new Email();
 		$sender->to = $email;
 		$sender->subject = "$name te ha invitado a la app";
-		$sender->sendFromTemplate($content, 'invite');
+
+		try {
+			$sender->sendFromTemplate($content, 'invite');
+		} catch (Alert $e) {
+			$e->post();
+			return $response->setTemplate('message.ejs', [
+				'header' => 'Hubo problemas para enviar el correo de invitacion',
+				'icon' => 'sentiment_very_dissatisfied',
+				'text' => "Gracias por invitar a $email a ser parte de nuestra comunidad, pero tuvimos un problema para enviar la invitacion. Por favor vuela a interntarlo y si el problema persiste contacta al soporte."
+			]);
+		}
 
 		// save invitation into the database
 		if ($resend) {
