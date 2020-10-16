@@ -118,7 +118,7 @@ class Service
 			return $response->setTemplate('message.ejs', [
 				'header' => 'Hubo problemas para enviar el correo de invitaci&oacute;n',
 				'icon' => 'sentiment_very_dissatisfied',
-				'text' => "Gracias por invitar a $email a ser parte de nuestra comunidad, pero tuvimos un problema para enviar la invitaci&oacute;n. Por favor vuela a intentarlo y si el problema persiste contacta al soporte."
+				'text' => "Gracias por invitar a $email a ser parte de nuestra comunidad, pero tuvimos un problema para enviar la invitaci&oacute;n. Por favor vuelve a intentarlo y si el problema persiste contacta al soporte."
 			]);
 		}
 
