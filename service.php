@@ -109,12 +109,16 @@ class Service
 
 		try {
 			$sender->sendFromTemplate($content, 'invite');
-		} catch (Alert $e) {
-			$e->post();
+		} catch (Exception $e) {
+
+			if (get_class($e) == 'Alert') {
+				$e->post();
+			}
+
 			return $response->setTemplate('message.ejs', [
-				'header' => 'Hubo problemas para enviar el correo de invitacion',
+				'header' => 'Hubo problemas para enviar el correo de invitaci&oacute;n',
 				'icon' => 'sentiment_very_dissatisfied',
-				'text' => "Gracias por invitar a $email a ser parte de nuestra comunidad, pero tuvimos un problema para enviar la invitacion. Por favor vuela a interntarlo y si el problema persiste contacta al soporte."
+				'text' => "Gracias por invitar a $email a ser parte de nuestra comunidad, pero tuvimos un problema para enviar la invitaci&oacute;n. Por favor vuela a intentarlo y si el problema persiste contacta al soporte."
 			]);
 		}
 
