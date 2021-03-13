@@ -1,23 +1,36 @@
+// activate share if supported
 $(document).ready(function(){
-	$('.tabs').tabs();
+	if (navigator.share) {
+		$('#share').addClass('green-text');
+	}
 });
 
-function invite() {
-	var email = $('#email').val();
-	remind(email);
+// copy invitation link to the clipboard
+function copy() {
+	// copy the text in the input
+	var copyText = document.getElementById("link");
+	copyText.select();
+	copyText.setSelectionRange(0, 99999); // for mobile devices
+	document.execCommand("copy");
+
+	// display confimation message
+	M.toast({html: 'El link de invitación fue copiado'});
 }
 
-function remind(email) {
-	var notPlusSymbol = email.indexOf('+') == -1;
-	if (notPlusSymbol && isEmail(email)) {
-		apretaste.send({
-			'command': 'INVITAR INVITAR',
-			'data': {'email':email}
+// open share modal
+function share() {
+	if (navigator.share) {
+		// copy the share link
+		var link = $('#link').val();
+		var text = "Instala Apretaste, la red de amistad de todos los cubanos y gánate §3 de bienvenida: " + link;
+
+		// open the window
+		navigator.share({
+			title: "Invita a tu gente",
+			text: text,
+			url: window.location.href
 		});
-	} else M.toast({'html':"Ingrese un email válido"});
-}
-
-function isEmail(email) {
-	var regex = /^([a-zA-Z0-9_\.\-\+])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
-	return regex.test(email);
+	} else {
+		M.toast({html: 'Tu dispositivo no permite mostrar la lista de redes sociales. Puedes copiar el vínculo y compartirlo manualmente.'});
+	}
 }

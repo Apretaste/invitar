@@ -1,11 +1,13 @@
-.note-text {
-    margin-top: 100px;
+#impact {
+	font-size: x-large;
+	text-align: center;
+	text-transform: uppercase;
+	text-shadow: 1px 1px 1px black;
+	color: #57b23b;
+	margin: 50px 0px;
+	font-weight: bold;
 }
 
-.bottom-space {
-    margin-bottom: 80px;
-}
-
-.middle-center {
-    padding: 150px 40px 0px 40px;
+.input-field {
+	margin-bottom: 20px;
 }
