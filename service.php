@@ -22,7 +22,8 @@ class Service
 		$invited = Database::queryCache("
 			SELECT username, gender, avatar, avatarColor, insertion_date 
 			FROM person 
-			WHERE invited_by = {$request->person->id}");
+			WHERE invited_by = {$request->person->id}
+			ORDER BY insertion_date DESC");
 
 		// get the content
 		$content = [
