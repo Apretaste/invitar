@@ -1,15 +1,9 @@
 <?php
 
-use Apretaste\Email;
-use Apretaste\Level;
-use Apretaste\Person;
 use Apretaste\Request;
 use Apretaste\Response;
-use Apretaste\Challenges;
-use Framework\Alert;
 use Framework\Config;
 use Framework\Database;
-use Framework\GoogleAnalytics;
 
 class Service
 {
@@ -22,12 +16,18 @@ class Service
 	public function _main(Request $request, Response $response)
 	{
 		// create invitation link
-		$invitationLink = "http://www.apretaste.me/invitar/{$request->person->username}";
+		$link = "apretaste.me/join/me/{$request->person->username}";
+
+		// get users invited
+		$invited = Database::queryCache("
+			SELECT username, gender, avatar, avatarColor, insertion_date 
+			FROM person 
+			WHERE invited_by = {$request->person->id}");
 
 		// get the content
 		$content = [
-			'link' => $invitationLink,
-			'sent' => []
+			'link' => $link,
+			'invited' => $invited
 		];
 
 		// send response to the view

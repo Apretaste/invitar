@@ -20,3 +20,23 @@
 		</div>
 	</div>
 </div>
+
+<div class="row">
+	<div class="col s12">
+		<% if(invited.length > 0 ) { %>
+			<p class="center-align grey-text">Usuarios que aceptaron tu invitación</p>
+			<ul class="collection one-line">
+				<% invited.forEach(function(item) { %>
+					<li class="collection-item avatar">
+						<div class="person-avatar circle" face="<%= item.avatar %>" color="<%= item.avatarColor %>" size="40"></div>
+						<p><a href="#!" class="black-text <%= item.gender %>" onclick="apretaste.send({command:'PERFIL', data:{username:'<%= item.username %>'}})">@<%= item.username %></a></p>
+						<span class="chip clear tiny"><i class="far fa-calendar"></i> <%= moment(item.insertion_date).format("DD/MM/YYYY") %></span>
+						<a href="#!" onclick="apretaste.send({command:'PERFIL', data:{username:'<%= item.username %>'}})" class="secondary-content"><i class="material-icons">arrow_forward</i></a>
+					</li>
+				<% }) %>
+			</ul>
+		<% } else { %>
+			<p class="center-align grey-text">Nadie ha aceptado aún tu invitación</p>
+		<% } %>
+	</div>
+</div>
