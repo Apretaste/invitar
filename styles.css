@@ -1,3 +1,7 @@
+.gradient {
+	background-image: linear-gradient(lightgreen, white 40%);
+}
+
 #impact {
 	font-size: x-large;
 	text-align: center;
