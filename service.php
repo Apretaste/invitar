@@ -15,19 +15,16 @@ class Service
 	 */
 	public function _main(Request $request, Response $response)
 	{
-		// create invitation link
-		$link = "apretaste.me/join/me/{$request->person->username}";
-
 		// get users invited
 		$invited = Database::queryCache("
-			SELECT username, gender, avatar, avatarColor, insertion_date 
-			FROM person 
-			WHERE invited_by = {$request->person->id}
-			ORDER BY insertion_date DESC");
+			SELECT A.username, A.gender, A.avatar, A.avatarColor, B.accepted
+			FROM person A JOIN _email_invitations B
+			ON A.email = B.email_to
+			ORDER BY B.accepted DESC");
 
 		// get the content
 		$content = [
-			'link' => $link,
+			'username' => $request->person->username,
 			'invited' => $invited
 		];
 

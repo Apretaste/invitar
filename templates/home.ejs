@@ -3,7 +3,7 @@
 		<p id="impact">¡Invita a tu gente y ambos ganarán §3 cuando ellos usen Apretaste!</p>
 
 		<div class="input-field">
-			<input id="link" class="center-align" type="text" value="<%= link %>" readonly />
+			<input id="link" class="center-align" type="text" value="apretaste.me/join/<%= username %>" readonly/>
 			<label for="link">Link de invitación</label>
 		</div>
 
@@ -30,7 +30,7 @@
 					<li class="collection-item avatar">
 						<div class="person-avatar circle" face="<%= item.avatar %>" color="<%= item.avatarColor %>" size="40"></div>
 						<p><a href="#!" class="black-text <%= item.gender %>" onclick="apretaste.send({command:'PERFIL', data:{username:'<%= item.username %>'}})">@<%= item.username %></a></p>
-						<span class="chip clear tiny"><i class="far fa-calendar"></i> <%= moment(item.insertion_date).format("DD/MM/YYYY") %></span>
+						<span class="chip clear tiny"><i class="far fa-calendar"></i> <%= moment(item.accepted).format("DD/MM/YYYY") %></span>
 						<a href="#!" onclick="apretaste.send({command:'PERFIL', data:{username:'<%= item.username %>'}})" class="secondary-content"><i class="material-icons">arrow_forward</i></a>
 					</li>
 				<% }) %>

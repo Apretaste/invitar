@@ -1,7 +1,7 @@
-// activate share if supported
+// activate share, if supported
 $(document).ready(function(){
 	if (navigator.share) {
-		$('#share').addClass('green-text');
+		$('#share').css('display', 'inline-block');
 	}
 });
 
