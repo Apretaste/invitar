@@ -2,8 +2,7 @@
 
 use Apretaste\Request;
 use Apretaste\Response;
-use Framework\Config;
-use Framework\Database;
+use Apretaste\Database;
 
 class Service
 {
@@ -16,10 +15,12 @@ class Service
 	public function _main(Request $request, Response $response)
 	{
 		// get users invited
-		$invited = Database::queryCache("
+		$invited = Database::query("
 			SELECT A.username, A.gender, A.avatar, A.avatarColor, B.accepted
 			FROM person A JOIN _email_invitations B
 			ON A.email = B.email_to
+			WHERE id_from = {$request->person->id}
+			AND B.accepted IS NOT NULL
 			ORDER BY B.accepted DESC");
 
 		// get the content
