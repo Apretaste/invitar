@@ -19,18 +19,11 @@ function copy() {
 
 // open share modal
 function share() {
-	if (navigator.share) {
-		// copy the share link
-		var link = $('#link').val();
-		var text = "Instala Apretaste, la red de amistad de todos los cubanos y gánate §3 de bienvenida: " + link;
+	var link = $('#link').val();
+	var text = "Instala Apretaste, la red de amistad de todos los cubanos y gánate §3 de bienvenida";
 
-		// open the window
-		navigator.share({
-			title: "Invita a tu gente",
-			text: text,
-			url: window.location.href
-		});
-	} else {
-		M.toast({html: 'Tu dispositivo no permite mostrar la lista de redes sociales. Puedes copiar el vínculo y compartirlo manualmente.'});
-	}
+	apretaste.share({
+		title: text,
+		link: link
+	});
 }
